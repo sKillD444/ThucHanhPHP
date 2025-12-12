@@ -1,42 +1,142 @@
 <title>Quên mật khẩu</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <?php
-include("header.php")
+session_start();
+include("header.php");
+include("db.php");
+
+$error = "";
+$success = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_pass'])) {
+    $email = $_POST['email'];
+    $pass = $_POST['matkhau'];
+    $repass = $_POST['nhaplaimatkhau'];
+
+    if ($pass != $repass) {
+        $error = "Mật khẩu nhập lại không khớp!";
+    } elseif (!isset($_SESSION['otp_verified']) || $_SESSION['otp_verified'] !== true || $_SESSION['otp_email'] !== $email) {
+        // Kiểm tra biến session 'otp_verified' (được set bằng JS/AJAX logic hoặc logic PHP nếu làm full reload)
+        // Tuy nhiên, để an toàn tuyệt đối, ta check lại session OTP email
+        $error = "Vui lòng xác thực mã OTP trước!";
+    } else {
+        // Cập nhật mật khẩu mới
+        $sql = "UPDATE nguoidung SET matkhau = '$pass' WHERE email = '$email'";
+        if ($conn->query($sql) === TRUE) {
+            // Xóa session OTP để tránh dùng lại
+            unset($_SESSION['otp']);
+            unset($_SESSION['otp_email']);
+            unset($_SESSION['otp_verified']);
+
+            echo "<script>alert('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.'); window.location.href='dangnhap.php';</script>";
+        } else {
+            $error = "Lỗi hệ thống: " . $conn->error;
+        }
+    }
+}
 ?>
 
 <body class="bg-light">
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="card shadow p-4" style="width: 500px;">
+            <h3 class="text-center mb-4 fw-bold text-danger">Lấy lại mật khẩu</h3>
 
-    <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-        <div class="card shadow p-4" style="width: 480px;">
-            <h3 class="text-center mb-4 fw-bold text-success">Đổi mật khẩu</h3>
+            <?php if ($error) echo "<div class='alert alert-danger'>$error</div>"; ?>
 
-            <label class="form-label">Email</label>
-            <div class="input-group mb-3">
-                <input type="email" class="form-control" placeholder="Nhập email">
-                <button class="btn btn-primary">Gửi OTP</button>
-            </div>
+            <form method="POST">
+                <label class="form-label">Email đăng ký</label>
+                <div class="input-group mb-3">
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Nhập email của bạn" required>
+                    <button type="button" id="btnSendOTP" class="btn btn-danger">Gửi OTP</button>
+                </div>
 
-            <label class="form-label">Mã OTP</label>
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" placeholder="Nhập mã OTP">
-                <button class="btn btn-success">Xác minh</button>
-            </div>
+                <label class="form-label">Mã OTP</label>
+                <div class="input-group mb-3">
+                    <input type="text" id="otpCode" class="form-control" placeholder="Nhập mã 6 số">
+                    <button type="button" id="btnVerifyOTP" class="btn btn-secondary">Xác minh</button>
+                </div>
+                <div id="otpMessage" class="mb-3"></div>
 
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu mới</label>
-                <input class="form-control" type="password">
-            </div>
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu mới</label>
+                    <input type="password" name="matkhau" class="form-control" disabled id="newPass" required>
+                </div>
 
-            <div class="mb-4">
-                <label class="form-label">Nhập lại mật khẩu</label>
-                <input class="form-control" type="password">
-            </div>
+                <div class="mb-4">
+                    <label class="form-label">Nhập lại mật khẩu</label>
+                    <input type="password" name="nhaplaimatkhau" class="form-control" disabled id="reNewPass" required>
+                </div>
 
-            <button class="btn btn-success w-100 py-2">Lưu</button>
+                <button type="submit" name="reset_pass" id="btnSubmit" class="btn btn-success w-100 py-2" disabled>Lưu mật khẩu mới</button>
 
-            <a href="dangnh" class="mt-3 d-block text-center">Quay lại</a>
+                <div class="text-center mt-3">
+                    <a href="dangnhap.php" class="text-decoration-none">Quay lại đăng nhập</a>
+                </div>
+            </form>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            // 1. Gửi OTP (Type = forgot)
+            $("#btnSendOTP").click(function() {
+                var email = $("#email").val();
+                if (email == "") {
+                    alert("Vui lòng nhập email!");
+                    return;
+                }
+
+                var btn = $(this);
+                btn.text("Đang gửi...").prop('disabled', true);
+
+                $.post("send_mail.php", {
+                    action: "send_otp",
+                    email: email,
+                    type: "forgot"
+                }, function(data) {
+                    alert(data.message);
+                    if (data.status == 'success') {
+                        btn.text("Gửi lại").prop('disabled', false);
+                    } else {
+                        btn.text("Gửi OTP").prop('disabled', false);
+                    }
+                }, "json").fail(function() {
+                    alert("Lỗi kết nối server!");
+                    btn.text("Gửi OTP").prop('disabled', false);
+                });
+            });
+
+            // 2. Xác minh OTP
+            $("#btnVerifyOTP").click(function() {
+                var otp = $("#otpCode").val();
+                if (otp == "") {
+                    alert("Nhập mã OTP!");
+                    return;
+                }
+
+                $.post("send_mail.php", {
+                    action: "verify_otp",
+                    otp_code: otp
+                }, function(data) {
+                    if (data.status == "success") {
+                        $("#otpMessage").html('<small class="text-success fw-bold">✔ ' + data.message + '</small>');
+
+                        // Mở khóa form nhập pass
+                        $("#newPass, #reNewPass").prop('disabled', false);
+                        $("#btnSubmit").prop('disabled', false);
+
+                        // Khóa phần OTP lại
+                        $("#btnVerifyOTP").prop('disabled', true).text("Đã xác minh");
+                        $("#email").prop('readonly', true);
+                        $("#btnSendOTP").prop('disabled', true);
+                    } else {
+                        $("#otpMessage").html('<small class="text-danger fw-bold">✘ ' + data.message + '</small>');
+                    }
+                }, "json");
+            });
+        });
+    </script>
 </body>
 
 
