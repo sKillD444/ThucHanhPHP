@@ -4,7 +4,7 @@
 
     <!-- Logo -->
     <div class="text-center mb-4">
-        <img src="/DoAn/DoAn/images/logo.png" width="120" class="mb-2">
+        <img src="images/logo.png" width="120" class="mb-2">
         <h6 class="fw-bold">Quản Lý Hệ Thống</h6>
     </div>
 
