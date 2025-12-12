@@ -14,50 +14,10 @@
 <body class="d-flex flex-column" style="min-height:100vh;">
 
     <!-- ================= HEADER ================= -->
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom shadow-sm mb-3">
-            <div class="container-fluid">
 
-                <a class="navbar-brand" href="#">
-                    <img src="images/logo.png" style="height:50px;" />
-                </a>
-
-                <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navContent">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse justify-content-between" id="navContent">
-
-                    <ul class="navbar-nav mx-auto">
-                        <li class="nav-item mx-2"><a class="nav-link fs-5" href="#">Trang chủ</a></li>
-                        <li class="nav-item mx-2"><a class="nav-link fs-5" href="#">Giới thiệu</a></li>
-                        <li class="nav-item mx-2"><a class="nav-link fs-5" href="#">Sản phẩm</a></li>
-                        <li class="nav-item mx-2"><a class="nav-link fs-5" href="#">Liên hệ</a></li>
-                        <li class="nav-item mx-2"><a class="nav-link fs-5" href="#">Đánh giá</a></li>
-                    </ul>
-
-                    <div class="d-flex align-items-center me-3">
-                        <i class="bi bi-telephone fs-4 me-2"></i>
-                        <span>Hotline<br><b>0869 347 040</b></span>
-                    </div>
-
-                    <form class="d-flex border rounded">
-                        <input type="text" class="form-control border-0" placeholder="Tìm kiếm...">
-                        <button class="btn"><i class="bi bi-search"></i></button>
-                    </form>
-
-                    <button class="btn ms-3 position-relative">
-                        <i class="bi bi-cart fs-4"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
-                    </button>
-
-                    <a href="#" class="btn btn-outline-info ms-3">
-                        <i class="bi bi-person fs-4"></i> Đăng ký
-                    </a>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php
+    include("header.php")
+    ?>
 
     <!-- ================= SLIDER ================= -->
     <div id="sliderHome" class="carousel slide mb-5" data-bs-ride="carousel">
@@ -199,43 +159,10 @@
         </div>
     </div>
     <!-- ================= FOOTER ================= -->
-    <footer class="bg-dark text-light pt-5 pb-3 mt-auto">
-        <div class="container">
 
-            <div class="row">
-
-                <div class="col-md-4">
-                    <h5 class="fw-bold">Zyuuki Music Store</h5>
-                    <p>Cung cấp nhạc cụ chính hãng: Guitar, Piano, Trống…</p>
-                </div>
-
-                <div class="col-md-4">
-                    <h5 class="fw-bold">Liên hệ</h5>
-                    <p>📍 123 Nguyễn Trãi, TP.HCM</p>
-                    <p>📞 0869 347 040</p>
-                    <p>📧 contact@zyuuki.com</p>
-                </div>
-
-                <div class="col-md-4">
-                    <h5 class="fw-bold">Liên kết nhanh</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="text-light text-decoration-none">Trang chủ</a></li>
-                        <li><a href="#" class="text-light text-decoration-none">Sản phẩm</a></li>
-                        <li><a href="#" class="text-light text-decoration-none">Giới thiệu</a></li>
-                        <li><a href="#" class="text-light text-decoration-none">Liên hệ</a></li>
-                    </ul>
-                </div>
-
-            </div>
-
-            <hr class="border-secondary">
-
-            <div class="text-center">
-                © 2025 Zyuuki Music Store - All rights reserved.
-            </div>
-
-        </div>
-    </footer>
+    <?php
+    include("footer.php")
+    ?>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
