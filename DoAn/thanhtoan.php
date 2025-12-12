@@ -4,36 +4,31 @@
 session_start();
 include("header.php");
 include("db.php");
-if (!isset($_SESSION['user'])) {
-    echo "<script>alert('Vui lòng đăng nhập để thanh toán!'); window.location.href='dangnhap.php';</script>";
-    exit();
-}
-
-if (empty($_SESSION['cart'])) {
+include("config_vnpay.php");
+if (!isset($_SESSION['user']) || empty($_SESSION['cart'])) {
     header("Location: index.php");
     exit();
 }
 
 $uid = $_SESSION['uid'];
-$userRes = $conn->query("SELECT * FROM nguoidung WHERE ma_nd = '$uid'");
-$user = $userRes->fetch_assoc();
-
+$user = $conn->query("SELECT * FROM nguoidung WHERE ma_nd = '$uid'")->fetch_assoc();
 $total_money = 0;
 foreach ($_SESSION['cart'] as $item) {
     $total_money += $item['price'] * $item['qty'];
 }
+
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['dathang'])) {
     $ten = $_POST['hoten'];
     $sdt = $_POST['sdt'];
     $diachi = $_POST['diachi'];
     $phuongthuc = $_POST['payment_method'];
-    $ngaydat = date('Y-m-d');
+    $ngaydat = date('Y-m-d H:i:s');
     $sqlOrder = "INSERT INTO dondathang (ma_nd, nguoinhan, sdt, diachi, ngaydat, tongtien, trangthai, tt_thanhtoan, phuongthuc) 
                  VALUES ('$uid', '$ten', '$sdt', '$diachi', '$ngaydat', '$total_money', 'Đang xử lý', 'Chưa thanh toán', '$phuongthuc')";
 
     if ($conn->query($sqlOrder) === TRUE) {
         $order_id = $conn->insert_id;
-
         foreach ($_SESSION['cart'] as $id => $item) {
             $gia = $item['price'];
             $sl = $item['qty'];
@@ -42,12 +37,55 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['dathang'])) {
                           VALUES ('$order_id', '$id', '$sl', '$gia', '$thanhtien')");
         }
 
-        unset($_SESSION['cart']);
-
         if ($phuongthuc == 'VNPay') {
-            echo "<script>alert('Chức năng thanh toán VNPay đang bảo trì. Đơn hàng đã được lưu với trạng thái chờ thanh toán.'); window.location.href='index.php';</script>";
+            $vnp_TxnRef = $order_id . "_" . rand(10000, 99999);
+            $vnp_OrderInfo = "Thanh toan don hang #$order_id";
+            $vnp_OrderType = "billpayment";
+            $vnp_Amount = $total_money * 100;
+            $vnp_Locale = "vn";
+            $vnp_IpAddr = $_SERVER['REMOTE_ADDR'];
+            $inputData = array(
+                "vnp_Version" => "2.1.0",
+                "vnp_TmnCode" => $vnp_TmnCode,
+                "vnp_Amount" => $vnp_Amount,
+                "vnp_Command" => "pay",
+                "vnp_CreateDate" => date('YmdHis'),
+                "vnp_CurrCode" => "VND",
+                "vnp_IpAddr" => $vnp_IpAddr,
+                "vnp_Locale" => $vnp_Locale,
+                "vnp_OrderInfo" => $vnp_OrderInfo,
+                "vnp_OrderType" => $vnp_OrderType,
+                "vnp_ReturnUrl" => $vnp_Returnurl,
+                "vnp_TxnRef" => $vnp_TxnRef
+            );
+
+            ksort($inputData);
+            $query = "";
+            $i = 0;
+            $hashdata = "";
+            foreach ($inputData as $key => $value) {
+                if ($i == 1) {
+                    $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
+                } else {
+                    $hashdata .= urlencode($key) . "=" . urlencode($value);
+                    $i = 1;
+                }
+                $query .= urlencode($key) . "=" . urlencode($value) . '&';
+            }
+
+            $vnp_Url = $vnp_Url . "?" . $query;
+            if (isset($vnp_HashSecret)) {
+                $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
+                $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
+            }
+
+            // Chuyển hướng sang trang thanh toán
+            header("Location: " . $vnp_Url);
+            exit();
         } else {
-            echo "<script>alert('Đặt hàng thành công! Chúng tôi sẽ liên hệ sớm nhất.'); window.location.href='index.php';</script>";
+            // --- NẾU LÀ COD ---
+            unset($_SESSION['cart']); // Xóa giỏ
+            echo "<script>alert('Đặt hàng thành công!'); window.location.href='index.php';</script>";
         }
     } else {
         echo "Lỗi: " . $conn->error;
@@ -63,38 +101,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['dathang'])) {
             <div class="row">
                 <div class="col-md-7">
                     <div class="card shadow-sm p-4 mb-3">
-                        <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill"></i> Thông tin giao hàng</h5>
-
+                        <h5 class="fw-bold mb-3">Thông tin giao hàng</h5>
                         <div class="mb-3">
-                            <label class="form-label">Họ và tên người nhận</label>
+                            <label class="form-label">Họ tên</label>
                             <input type="text" name="hoten" class="form-control" value="<?= $user['tennd'] ?>" required>
                         </div>
-
                         <div class="mb-3">
-                            <label class="form-label">Số điện thoại</label>
+                            <label class="form-label">SĐT</label>
                             <input type="text" name="sdt" class="form-control" value="<?= $user['sdt'] ?>" required>
                         </div>
-
                         <div class="mb-3">
-                            <label class="form-label">Địa chỉ nhận hàng</label>
-                            <textarea name="diachi" class="form-control" rows="2" required><?= $user['diachi'] ?></textarea>
+                            <label class="form-label">Địa chỉ</label>
+                            <textarea name="diachi" class="form-control" required><?= $user['diachi'] ?></textarea>
                         </div>
                     </div>
 
                     <div class="card shadow-sm p-4">
-                        <h5 class="fw-bold mb-3"><i class="bi bi-credit-card"></i> Phương thức thanh toán</h5>
-
+                        <h5 class="fw-bold mb-3">Phương thức thanh toán</h5>
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" name="payment_method" id="cod" value="COD" checked>
-                            <label class="form-check-label fw-bold" for="cod">
-                                <i class="bi bi-cash-stack text-success"></i> Thanh toán khi nhận hàng (COD)
-                            </label>
+                            <label class="form-check-label fw-bold" for="cod">Thanh toán khi nhận hàng (COD)</label>
                         </div>
-
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="payment_method" id="vnpay" value="VNPay">
                             <label class="form-check-label fw-bold" for="vnpay">
-                                <i class="bi bi-qr-code text-primary"></i> Thanh toán qua VNPay (QR Code / ATM)
+                                Thanh toán qua VNPay <img src="https://vnpay.vn/assets/images/logo-icon/logo-primary.svg" height="20">
                             </label>
                         </div>
                     </div>
@@ -103,28 +134,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['dathang'])) {
                 <div class="col-md-5">
                     <div class="card shadow-sm">
                         <div class="card-header bg-success text-white">
-                            <h5 class="mb-0">Đơn hàng của bạn</h5>
+                            <h5>Đơn hàng của bạn</h5>
                         </div>
                         <div class="card-body">
                             <ul class="list-group list-group-flush mb-3">
                                 <?php foreach ($_SESSION['cart'] as $item): ?>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <?= $item['name'] ?> <small class="text-muted">(x<?= $item['qty'] ?>)</small>
-                                        </div>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span><?= $item['name'] ?> (x<?= $item['qty'] ?>)</span>
                                         <span class="fw-bold"><?= number_format($item['price'] * $item['qty'], 0, ',', '.') ?>đ</span>
                                     </li>
                                 <?php endforeach; ?>
                             </ul>
-
                             <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-3">
                                 <span>Tổng cộng:</span>
                                 <span class="text-danger"><?= number_format($total_money, 0, ',', '.') ?>đ</span>
                             </div>
-
-                            <button type="submit" name="dathang" class="btn btn-warning w-100 py-2 mt-4 fw-bold text-uppercase">
-                                Xác nhận đặt hàng
-                            </button>
+                            <button type="submit" name="dathang" class="btn btn-warning w-100 py-2 mt-4 fw-bold">XÁC NHẬN ĐẶT HÀNG</button>
                         </div>
                     </div>
                 </div>

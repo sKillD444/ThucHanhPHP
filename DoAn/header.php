@@ -31,7 +31,7 @@
                     <span>Hotline<br><b>0869 347 040</b></span>
                 </div>
 
-                <form action="sanpham.php" method="GET" class="search-form me-3">
+                <form action="timkiem.php" method="GET" class="search-form me-3">
                     <div class="input-group">
                         <input type="text" name="query" class="form-control" placeholder="Tìm kiếm..." required>
                         <button type="submit" class="btn btn-outline-secondary">🔍</button>
@@ -46,22 +46,20 @@
                     }
                 }
                 ?>
-
                 <a href="giohang.php" class="btn btn-outline-dark position-relative me-3">
                     <i class="bi bi-cart3 fs-4"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                         <?= $total_qty ?>
                     </span>
                 </a>
-
                 <?php if (isset($_SESSION['user'])): ?>
                     <div class="dropdown">
                         <button class="btn btn-outline-primary dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> <?= $_SESSION['user'] ?>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#">Thông tin cá nhân</a></li>
-                            <li><a class="dropdown-item" href="#">Đơn hàng của tôi</a></li>
+                            <li><a class="dropdown-item" href="xemtaikhoan.php">Thông tin cá nhân</a></li>
+                            <li><a class="dropdown-item" href="xemdonhang.php">Đơn hàng của tôi</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -74,7 +72,6 @@
                         <a href="dangky.php" class="btn btn-outline-primary">Đăng ký</a>
                     </div>
                 <?php endif; ?>
-
             </div>
         </div>
     </nav>
