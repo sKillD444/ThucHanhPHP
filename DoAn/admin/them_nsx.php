@@ -2,7 +2,7 @@
 
 
 <?php
-include("db.php");
+include("config.php");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $ma = $_POST['ma_nsx'];

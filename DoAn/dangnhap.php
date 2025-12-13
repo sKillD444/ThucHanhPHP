@@ -3,7 +3,7 @@
 <?php
 session_start();
 include("header.php");
-include("db.php");
+include("config.php");
 
 if (isset($_SESSION['user'])) {
     header("Location: index.php");
@@ -14,6 +14,8 @@ $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $pass = $_POST['matkhau'];
+
+    // Admin cứng
     if ($email == 'admin@gmail.com' && $pass == '123456') {
         $_SESSION['user'] = 'Administrator';
         $_SESSION['uid'] = 9999;
@@ -21,22 +23,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: admin/qlsanpham.php");
         exit;
     }
-    $sql = "SELECT * FROM nguoidung WHERE email = '$email' AND matkhau = '$pass' AND trangthai = 1";
-    // Kiểm tra biến $conn có tồn tại không trước khi chạy
-    if (isset($conn)) {
-        $result = $conn->query($sql);
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $_SESSION['user'] = $row['tennd']; // Lưu tên hiển thị
-            $_SESSION['uid'] = $row['ma_nd'];  // Lưu ID
 
+    try {
+        $sql = "SELECT * FROM nguoidung WHERE email = :email AND matkhau = :pass AND trangthai = 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':pass', $pass);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $_SESSION['user'] = $row['tennd'];
+            $_SESSION['uid'] = $row['ma_nd'];
             header("Location: index.php");
             exit;
         } else {
             $error = "Email hoặc mật khẩu không đúng, hoặc tài khoản bị khóa!";
         }
-    } else {
-        $error = "Lỗi kết nối CSDL! Kiểm tra file db.php";
+    } catch (PDOException $e) {
+        $error = "Lỗi hệ thống: " . $e->getMessage();
     }
 }
 ?>
@@ -70,6 +75,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 
-<?php
-include("footer.php")
-?>
+<?php include("footer.php") ?>

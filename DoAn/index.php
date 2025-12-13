@@ -13,21 +13,19 @@
 
     <?php
     include("header.php");
-    include("db.php");
+    include("config.php");
     $sqlGet6 = "SELECT s.*, n.tennsx 
             FROM sanpham s 
             JOIN nhasanxuat n ON s.ma_nsx = n.ma_nsx 
             ORDER BY s.ma_sp ASC 
             LIMIT 6";
 
-    $result = $conn->query($sqlGet6);
+    $stmt = $conn->query($sqlGet6);
     $all_products = [];
-
-    if ($result && $result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $all_products[] = $row;
-        }
+    if ($stmt->rowCount() > 0) {
+        $all_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     $group_noibat = array_slice($all_products, 0, 3);
     $group_moi = array_slice($all_products, 3, 3);
     ?>
@@ -61,7 +59,6 @@
         <div class="text-center mb-4">
             <h2 class="fw-bold">🔥 Sản phẩm nổi bật</h2>
         </div>
-
         <div class="row row-cols-1 row-cols-md-3 g-4">
             <?php
             if (!empty($group_noibat)) {
@@ -81,12 +78,10 @@
                             </div>
                         </div>
                     </div>
-            <?php
-                }
+            <?php }
             } else {
                 echo "<p class='text-center w-100'>Đang cập nhật dữ liệu...</p>";
-            }
-            ?>
+            } ?>
         </div>
     </div>
 
@@ -94,7 +89,6 @@
         <div class="text-center mb-4">
             <h2 class="fw-bold">🆕 Sản phẩm mới</h2>
         </div>
-
         <div class="row row-cols-1 row-cols-md-3 g-4">
             <?php
             if (!empty($group_moi)) {
@@ -114,19 +108,15 @@
                             </div>
                         </div>
                     </div>
-            <?php
-                }
+            <?php }
             } else {
                 echo "<p class='text-center w-100'>Chưa có thêm sản phẩm nào...</p>";
-            }
-            ?>
+            } ?>
         </div>
     </div>
-    <?php
-    include("footer.php")
-    ?>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    <?php include("footer.php") ?>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

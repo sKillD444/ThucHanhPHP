@@ -3,20 +3,23 @@
 <?php
 session_start();
 include("header.php");
-include("db.php");
+include("config.php");
 include("config_vnpay.php");
+
 if (!isset($_SESSION['user']) || empty($_SESSION['cart'])) {
     header("Location: index.php");
     exit();
 }
 
 $uid = $_SESSION['uid'];
-$user = $conn->query("SELECT * FROM nguoidung WHERE ma_nd = '$uid'")->fetch_assoc();
+// [PDO] Lấy thông tin user
+$stmt = $conn->query("SELECT * FROM nguoidung WHERE ma_nd = '$uid'");
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
 $total_money = 0;
 foreach ($_SESSION['cart'] as $item) {
     $total_money += $item['price'] * $item['qty'];
 }
-
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['dathang'])) {
     $ten = $_POST['hoten'];
@@ -24,16 +27,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['dathang'])) {
     $diachi = $_POST['diachi'];
     $phuongthuc = $_POST['payment_method'];
     $ngaydat = date('Y-m-d H:i:s');
-    $sqlOrder = "INSERT INTO dondathang (ma_nd, nguoinhan, sdt, diachi, ngaydat, tongtien, trangthai, tt_thanhtoan, phuongthuc) 
-                 VALUES ('$uid', '$ten', '$sdt', '$diachi', '$ngaydat', '$total_money', 'Đang xử lý', 'Chưa thanh toán', '$phuongthuc')";
 
-    if ($conn->query($sqlOrder) === TRUE) {
-        $order_id = $conn->insert_id;
+    try {
+        $sqlOrder = "INSERT INTO dondathang (ma_nd, nguoinhan, sdt, diachi, ngaydat, tongtien, trangthai, tt_thanhtoan, phuongthuc) 
+                     VALUES ('$uid', '$ten', '$sdt', '$diachi', '$ngaydat', '$total_money', 'Đang xử lý', 'Chưa thanh toán', '$phuongthuc')";
+
+        // Dùng exec cho INSERT
+        $conn->exec($sqlOrder);
+
+        // [PDO] Lấy ID đơn hàng vừa tạo
+        $order_id = $conn->lastInsertId();
+
+        // Insert chi tiết đơn hàng
         foreach ($_SESSION['cart'] as $id => $item) {
             $gia = $item['price'];
             $sl = $item['qty'];
             $thanhtien = $gia * $sl;
-            $conn->query("INSERT INTO chitietdondathang (ma_ddh, ma_sp, soluong, gia, thanhtien) 
+            $conn->exec("INSERT INTO chitietdondathang (ma_ddh, ma_sp, soluong, gia, thanhtien) 
                           VALUES ('$order_id', '$id', '$sl', '$gia', '$thanhtien')");
         }
 
@@ -78,17 +88,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['dathang'])) {
                 $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
                 $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
             }
-
-            // Chuyển hướng sang trang thanh toán
             header("Location: " . $vnp_Url);
             exit();
         } else {
-            // --- NẾU LÀ COD ---
-            unset($_SESSION['cart']); // Xóa giỏ
+            // NẾU LÀ COD
+            unset($_SESSION['cart']);
             echo "<script>alert('Đặt hàng thành công!'); window.location.href='index.php';</script>";
         }
-    } else {
-        echo "Lỗi: " . $conn->error;
+    } catch (PDOException $e) {
+        echo "Lỗi: " . $e->getMessage();
     }
 }
 ?>

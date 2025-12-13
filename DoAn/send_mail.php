@@ -7,7 +7,7 @@ use PHPMailer\PHPMailer\Exception;
 include("PHPMailer/Exception.php");
 include("PHPMailer/PHPMailer.php");
 include("PHPMailer/SMTP.php");
-include("db.php"); // Kết nối CSDL để kiểm tra email tồn tại
+include("config.php");
 
 header('Content-Type: application/json');
 
@@ -18,15 +18,15 @@ if ($action == 'send_otp') {
     $email = $_POST['email'];
     $type = $_POST['type']; // 'register' hoặc 'forgot'
 
-    // Kiểm tra email trong CSDL
-    $sql = "SELECT * FROM nguoidung WHERE email = '$email'";
-    $result = $conn->query($sql);
+    // [PDO] Kiểm tra email
+    $stmt = $conn->query("SELECT * FROM nguoidung WHERE email = '$email'");
+    $count = $stmt->rowCount();
 
-    if ($type == 'register' && $result->num_rows > 0) {
+    if ($type == 'register' && $count > 0) {
         echo json_encode(['status' => 'error', 'message' => 'Email đã tồn tại!']);
         exit;
     }
-    if ($type == 'forgot' && $result->num_rows == 0) {
+    if ($type == 'forgot' && $count == 0) {
         echo json_encode(['status' => 'error', 'message' => 'Email không tồn tại trong hệ thống!']);
         exit;
     }
@@ -36,14 +36,14 @@ if ($action == 'send_otp') {
     $_SESSION['otp'] = $otp;
     $_SESSION['otp_email'] = $email;
 
-    // Cấu hình gửi mail
+    // Cấu hình gửi mail (Phần này không liên quan CSDL nên giữ nguyên)
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'dangvochungkhanh@gmail.com'; // Email của bạn
-        $mail->Password   = 'xnod tezj xzhp laww';        // Mật khẩu ứng dụng của bạn
+        $mail->Username   = 'dangvochungkhanh@gmail.com';
+        $mail->Password   = 'xnod tezj xzhp laww';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
         $mail->CharSet    = 'UTF-8';
@@ -68,6 +68,8 @@ if ($action == 'verify_otp') {
     $otp_user = $_POST['otp_code'];
 
     if (isset($_SESSION['otp']) && $_SESSION['otp'] == $otp_user) {
+        // [QUAN TRỌNG] Đánh dấu là đã xác thực để ngăn chặn việc đổi mật khẩu không qua OTP
+        $_SESSION['otp_verified'] = true;
         echo json_encode(['status' => 'success', 'message' => 'Xác thực thành công!']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Mã OTP không đúng!']);

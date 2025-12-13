@@ -7,7 +7,7 @@
 
     <div class="d-flex">
         <?php
-        include("db.php");
+        include("config.php");
         include("sidebar.php");
         ?>
         <!-- CONTENT -->

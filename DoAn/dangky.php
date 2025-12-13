@@ -4,8 +4,8 @@
 <?php
 session_start();
 include("header.php");
-include("db.php");
-// Xử lý khi nhấn nút Đăng ký (Sau khi đã xong OTP)
+include("config.php");
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register'])) {
     $tennd = $_POST['tennd'];
     $email = $_POST['email'];
@@ -13,20 +13,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register'])) {
     $pass = $_POST['matkhau'];
     $repass = $_POST['nhaplaimatkhau'];
 
-    // Kiểm tra khớp mật khẩu
     if ($pass != $repass) {
         $error = "Mật khẩu nhập lại không khớp!";
     } else {
-        // Kiểm tra email OTP có khớp với email đăng ký không
         if (!isset($_SESSION['otp_email']) || $_SESSION['otp_email'] != $email) {
             $error = "Vui lòng xác thực email trước!";
         } else {
-            $sql = "INSERT INTO nguoidung (tennd, email, sdt, matkhau, trangthai) VALUES ('$tennd', '$email', '$sdt', '$pass', 1)";
+            try {
+                $sql = "INSERT INTO nguoidung (tennd, email, sdt, matkhau, trangthai) VALUES (:ten, :email, :sdt, :pass, 1)";
+                $stmt = $conn->prepare($sql);
 
-            if ($conn->query($sql) === TRUE) {
-                echo "<script>alert('Đăng ký thành công!'); window.location.href='dangnhap.php';</script>";
-            } else {
-                $error = "Lỗi: " . $conn->error;
+                $stmt->bindParam(':ten', $tennd);
+                $stmt->bindParam(':email', $email);
+                $stmt->bindParam(':sdt', $sdt);
+                $stmt->bindParam(':pass', $pass);
+
+                if ($stmt->execute()) {
+                    echo "<script>alert('Đăng ký thành công!'); window.location.href='dangnhap.php';</script>";
+                } else {
+                    $error = "Đăng ký thất bại.";
+                }
+            } catch (PDOException $e) {
+                $error = "Lỗi hệ thống: " . $e->getMessage();
             }
         }
     }
@@ -119,9 +127,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register'])) {
                 }, function(data) {
                     if (data.status == "success") {
                         $("#otpMessage").html('<small class="text-success fw-bold">✔ ' + data.message + '</small>');
-                        $("#btnSubmit").prop('disabled', false); // Mở khóa nút đăng ký
+                        $("#btnSubmit").prop('disabled', false);
                         $("#btnVerifyOTP").prop('disabled', true).text("Đã xác minh");
-                        $("#email").prop('readonly', true); // Khóa không cho đổi email
+                        $("#email").prop('readonly', true);
                     } else {
                         $("#otpMessage").html('<small class="text-danger fw-bold">✘ ' + data.message + '</small>');
                     }
@@ -130,6 +138,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register'])) {
         });
     </script>
 </body>
-<?php
-include("footer.php")
-?>
+<?php include("footer.php") ?>

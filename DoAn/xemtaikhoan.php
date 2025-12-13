@@ -4,7 +4,7 @@
 <?php
 session_start();
 include("header.php");
-include("db.php");
+include("config.php");
 
 if (!isset($_SESSION['user'])) {
     header("Location: dangnhap.php");
@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['capnhat'])) {
     $diachi = $_POST['diachi'];
 
     $avatar_sql = "";
+    // Xử lý upload ảnh
     if (!empty($_FILES['hinh']['name'])) {
         $hinh = time() . "_" . basename($_FILES['hinh']['name']);
         $target = "images/avatar/" . $hinh;
@@ -31,17 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['capnhat'])) {
         }
     }
 
-    $sql = "UPDATE nguoidung SET tennd = '$ten', sdt = '$sdt', diachi = '$diachi' $avatar_sql WHERE ma_nd = '$uid'";
+    try {
+        $sql = "UPDATE nguoidung SET tennd = '$ten', sdt = '$sdt', diachi = '$diachi' $avatar_sql WHERE ma_nd = '$uid'";
+        $conn->exec($sql);
 
-    if ($conn->query($sql) === TRUE) {
         $_SESSION['user'] = $ten;
         $msg = "<div class='alert alert-success'>Cập nhật hồ sơ thành công!</div>";
-    } else {
-        $msg = "<div class='alert alert-danger'>Lỗi: " . $conn->error . "</div>";
+    } catch (PDOException $e) {
+        $msg = "<div class='alert alert-danger'>Lỗi: " . $e->getMessage() . "</div>";
     }
 }
 
-$user = $conn->query("SELECT * FROM nguoidung WHERE ma_nd = '$uid'")->fetch_assoc();
+$stmt = $conn->query("SELECT * FROM nguoidung WHERE ma_nd = '$uid'");
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <body class="bg-light">
@@ -121,7 +124,5 @@ $user = $conn->query("SELECT * FROM nguoidung WHERE ma_nd = '$uid'")->fetch_asso
     </div>
 </body>
 
-<?php
-include("footer.php")
-?>
+<?php include("footer.php") ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

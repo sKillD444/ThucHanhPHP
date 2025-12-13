@@ -1,6 +1,6 @@
 <?php
 session_start();
-include("db.php");
+include("config.php");
 
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
@@ -13,10 +13,10 @@ if ($action == 'add' && $id) {
     if (isset($_SESSION['cart'][$id])) {
         $_SESSION['cart'][$id]['qty'] += 1;
     } else {
-        $sql = "SELECT * FROM sanpham WHERE ma_sp = '$id'";
-        $result = $conn->query($sql);
-        if ($result->num_rows > 0) {
-            $product = $result->fetch_assoc();
+        $stmt = $conn->query("SELECT * FROM sanpham WHERE ma_sp = '$id'");
+
+        if ($stmt->rowCount() > 0) {
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
             $_SESSION['cart'][$id] = [
                 'name' => $product['tensp'],
                 'price' => $product['giasp'],

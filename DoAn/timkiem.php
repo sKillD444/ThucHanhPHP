@@ -1,25 +1,40 @@
-<title>Tìm kiếm: <?= $tukhoa ?></title>
+<title>Tìm kiếm</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <?php
 include("header.php");
-include("db.php");
+include("config.php");
 
 $tukhoa = "";
-$data = [];
+$count = 0; // Biến đếm số kết quả
 
 if (isset($_GET['query']) && !empty($_GET['query'])) {
     $tukhoa = $_GET['query'];
-    $sql = "SELECT s.*, n.tennsx 
-            FROM sanpham s 
-            LEFT JOIN nhasanxuat n ON s.ma_nsx = n.ma_nsx 
-            WHERE s.tensp LIKE '%$tukhoa%' 
-            ORDER BY s.ma_sp DESC";
 
-    $result = $conn->query($sql);
+    try {
+        // [PDO] Sử dụng Prepared Statement để tìm kiếm an toàn
+        $sql = "SELECT s.*, n.tennsx 
+                FROM sanpham s 
+                LEFT JOIN nhasanxuat n ON s.ma_nsx = n.ma_nsx 
+                WHERE s.tensp LIKE :tukhoa 
+                ORDER BY s.ma_sp DESC";
+
+        $stmt = $conn->prepare($sql);
+
+        // Thêm dấu % vào từ khóa để tìm kiếm gần đúng (LIKE)
+        $searchParam = "%$tukhoa%";
+        $stmt->bindParam(':tukhoa', $searchParam);
+        $stmt->execute();
+
+        // [PDO] Đếm số dòng tìm thấy
+        $count = $stmt->rowCount();
+    } catch (PDOException $e) {
+        echo "Lỗi truy vấn: " . $e->getMessage();
+    }
 } else {
+    // Nếu không có từ khóa thì về trang chủ
     header("Location: index.php");
     exit();
 }
@@ -37,15 +52,16 @@ if (isset($_GET['query']) && !empty($_GET['query'])) {
                     </ol>
                 </nav>
 
-                <h3>Kết quả tìm kiếm cho từ khóa: <span class="text-danger fw-bold">"<?= $tukhoa ?>"</span></h3>
-                <p class="text-muted">Tìm thấy <?= ($result) ? $result->num_rows : 0 ?> sản phẩm phù hợp</p>
+                <h3>Kết quả tìm kiếm cho từ khóa: <span class="text-danger fw-bold">"<?= htmlspecialchars($tukhoa) ?>"</span></h3>
+                <p class="text-muted">Tìm thấy <?= $count ?> sản phẩm phù hợp</p>
             </div>
         </div>
 
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
             <?php
-            if ($result && $result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
+            if ($count > 0) {
+
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $gia = number_format($row['giasp'], 0, ',', '.') . ' đ';
                     $img_path = "images/" . $row['tenhinh'];
                     $hinh = (!empty($row['tenhinh']) && file_exists($img_path)) ? $img_path : "https://placehold.co/300x300?text=No+Image";

@@ -2,7 +2,7 @@
 
 
     <?php
-    include("db.php");
+    include("config.php");
 
     $id = $_GET['id'];
     $row = $conn->query("SELECT * FROM nguoidung WHERE ma_nd = '$id'")->fetch_assoc();

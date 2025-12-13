@@ -4,7 +4,7 @@
 <?php
 session_start();
 include("header.php");
-include("db.php");
+include("config.php");
 
 $error = "";
 $success = "";
@@ -17,21 +17,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_pass'])) {
     if ($pass != $repass) {
         $error = "Mật khẩu nhập lại không khớp!";
     } elseif (!isset($_SESSION['otp_verified']) || $_SESSION['otp_verified'] !== true || $_SESSION['otp_email'] !== $email) {
-        // Kiểm tra biến session 'otp_verified' (được set bằng JS/AJAX logic hoặc logic PHP nếu làm full reload)
-        // Tuy nhiên, để an toàn tuyệt đối, ta check lại session OTP email
         $error = "Vui lòng xác thực mã OTP trước!";
     } else {
-        // Cập nhật mật khẩu mới
-        $sql = "UPDATE nguoidung SET matkhau = '$pass' WHERE email = '$email'";
-        if ($conn->query($sql) === TRUE) {
-            // Xóa session OTP để tránh dùng lại
-            unset($_SESSION['otp']);
-            unset($_SESSION['otp_email']);
-            unset($_SESSION['otp_verified']);
+        try {
+            $sql = "UPDATE nguoidung SET matkhau = :pass WHERE email = :email";
+            $stmt = $conn->prepare($sql);
+            $stmt->bindParam(':pass', $pass);
+            $stmt->bindParam(':email', $email);
 
-            echo "<script>alert('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.'); window.location.href='dangnhap.php';</script>";
-        } else {
-            $error = "Lỗi hệ thống: " . $conn->error;
+            if ($stmt->execute()) {
+                unset($_SESSION['otp']);
+                unset($_SESSION['otp_email']);
+                unset($_SESSION['otp_verified']);
+                echo "<script>alert('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.'); window.location.href='dangnhap.php';</script>";
+            } else {
+                $error = "Lỗi cập nhật mật khẩu.";
+            }
+        } catch (PDOException $e) {
+            $error = "Lỗi hệ thống: " . $e->getMessage();
         }
     }
 }
@@ -79,54 +82,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_pass'])) {
 
     <script>
         $(document).ready(function() {
-            // 1. Gửi OTP (Type = forgot)
             $("#btnSendOTP").click(function() {
                 var email = $("#email").val();
                 if (email == "") {
                     alert("Vui lòng nhập email!");
                     return;
                 }
-
                 var btn = $(this);
                 btn.text("Đang gửi...").prop('disabled', true);
-
                 $.post("send_mail.php", {
                     action: "send_otp",
                     email: email,
                     type: "forgot"
                 }, function(data) {
                     alert(data.message);
-                    if (data.status == 'success') {
-                        btn.text("Gửi lại").prop('disabled', false);
-                    } else {
-                        btn.text("Gửi OTP").prop('disabled', false);
-                    }
+                    if (data.status == 'success') btn.text("Gửi lại").prop('disabled', false);
+                    else btn.text("Gửi OTP").prop('disabled', false);
                 }, "json").fail(function() {
                     alert("Lỗi kết nối server!");
                     btn.text("Gửi OTP").prop('disabled', false);
                 });
             });
-
-            // 2. Xác minh OTP
             $("#btnVerifyOTP").click(function() {
                 var otp = $("#otpCode").val();
                 if (otp == "") {
                     alert("Nhập mã OTP!");
                     return;
                 }
-
                 $.post("send_mail.php", {
                     action: "verify_otp",
                     otp_code: otp
                 }, function(data) {
                     if (data.status == "success") {
                         $("#otpMessage").html('<small class="text-success fw-bold">✔ ' + data.message + '</small>');
-
-                        // Mở khóa form nhập pass
                         $("#newPass, #reNewPass").prop('disabled', false);
                         $("#btnSubmit").prop('disabled', false);
-
-                        // Khóa phần OTP lại
                         $("#btnVerifyOTP").prop('disabled', true).text("Đã xác minh");
                         $("#email").prop('readonly', true);
                         $("#btnSendOTP").prop('disabled', true);
@@ -138,8 +128,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_pass'])) {
         });
     </script>
 </body>
-
-
-<?php
-include("footer.php")
-?>
+<?php include("footer.php") ?>
