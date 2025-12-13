@@ -22,12 +22,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
     $sql = "SELECT * FROM nguoidung WHERE email = '$email' AND matkhau = '$pass' AND trangthai = 1";
+    // Kiểm tra biến $conn có tồn tại không trước khi chạy
     if (isset($conn)) {
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            $_SESSION['user'] = $row['tennd'];
-            $_SESSION['uid'] = $row['ma_nd'];
+            $_SESSION['user'] = $row['tennd']; // Lưu tên hiển thị
+            $_SESSION['uid'] = $row['ma_nd'];  // Lưu ID
 
             header("Location: index.php");
             exit;

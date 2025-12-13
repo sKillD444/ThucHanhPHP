@@ -14,7 +14,7 @@
         <div class="flex-grow-1 p-4" style="height: 100vh; overflow-y: auto;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="fw-bold text-dark">Danh Sách Sản Phẩm</h2>
-
+                <!-- Lọc -->
                 <div class="d-flex gap-2">
                     <form method="GET" class="d-flex align-items-center">
                         <select name="ma_loai" class="form-select me-2" onchange="this.form.submit()" style="width: 200px;">
@@ -22,7 +22,6 @@
                             <?php
                             $sqlLoai = "SELECT * FROM loaisanpham";
                             $resultLoai = $conn->query($sqlLoai);
-                            // Lấy mã loại đang chọn từ URL (nếu có)
                             $dang_chon = isset($_GET['ma_loai']) ? $_GET['ma_loai'] : "";
                             while ($rowLoai = $resultLoai->fetch_assoc()) {
                                 $selected = ($rowLoai['ma_loai'] == $dang_chon) ? "selected" : "";

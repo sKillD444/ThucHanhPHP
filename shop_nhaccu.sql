@@ -9,23 +9,10 @@
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-SET time_zone = "+00:00";
 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `shop_nhaccu`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `chitietdondathang`
---
+-- THAY ĐỔI: Thiết lập múi giờ Việt Nam (GMT+7)
+SET time_zone = "+07:00";
+SET NAMES 'utf8mb4';
 
 DROP TABLE IF EXISTS `chitietdondathang`;
 CREATE TABLE IF NOT EXISTS `chitietdondathang` (
@@ -38,11 +25,7 @@ CREATE TABLE IF NOT EXISTS `chitietdondathang` (
   PRIMARY KEY (`id`),
   KEY `ma_ddh` (`ma_ddh`),
   KEY `ma_sp` (`ma_sp`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `chitietdondathang`
---
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `chitietdondathang` (`id`, `ma_ddh`, `ma_sp`, `soluong`, `gia`, `thanhtien`) VALUES
 (1, 1, 'SP01', 2, 2500000.00, 4500000.00),
@@ -56,12 +39,6 @@ INSERT INTO `chitietdondathang` (`id`, `ma_ddh`, `ma_sp`, `soluong`, `gia`, `tha
 (9, 6, 'SP06', 1, 15000000.00, 15000000.00),
 (10, 7, 'SP09', 1, 19000000.00, 19000000.00),
 (11, 8, 'SP02', 1, 18000000.00, 18000000.00);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `dondathang`
---
 
 DROP TABLE IF EXISTS `dondathang`;
 CREATE TABLE IF NOT EXISTS `dondathang` (
@@ -79,11 +56,7 @@ CREATE TABLE IF NOT EXISTS `dondathang` (
   `phuongthuc` varchar(30) DEFAULT NULL,
   PRIMARY KEY (`ma_ddh`),
   KEY `ma_nd` (`ma_nd`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `dondathang`
---
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `dondathang` (`ma_ddh`, `ma_nd`, `nguoinhan`, `sdt`, `diachi`, `phuongxa`, `tinhthanh`, `ngaydat`, `tongtien`, `trangthai`, `tt_thanhtoan`, `phuongthuc`) VALUES
 (1, 1, 'Lê Minh Hoàng', '0988252751', '56 Cách Mạng Tháng 8', 'Phường Xuân Hòa', 'Thành phố Hồ Chí Minh', '2025-11-12', 4500000.00, 'Hoàn thành', 'Đã thanh toán', 'VNPay'),
@@ -95,23 +68,13 @@ INSERT INTO `dondathang` (`ma_ddh`, `ma_nd`, `nguoinhan`, `sdt`, `diachi`, `phuo
 (7, 1, 'Lê Minh Hoàng', '0988252751', '56 Cách Mạng Tháng 8', 'Phường Xuân Hòa', 'Thành phố Hồ Chí Minh', '2025-11-01', 19000000.00, 'Hoàn thành', 'Đã thanh toán', 'COD'),
 (8, 2, 'Nguyễn Thu Trang', '0985263321', '129 Nguyễn Đình Chiểu', 'Phường Xuân Hòa', 'Thành phố Hồ Chí Minh', '2025-11-25', 18000000.00, 'Đang xử lý', 'Đã thanh toán', 'VNPay');
 
--- --------------------------------------------------------
-
---
--- Table structure for table `loaisanpham`
---
-
 DROP TABLE IF EXISTS `loaisanpham`;
 CREATE TABLE IF NOT EXISTS `loaisanpham` (
   `ma_loai` varchar(20) NOT NULL,
   `tenloai` varchar(100) NOT NULL,
   `mota` text,
   PRIMARY KEY (`ma_loai`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `loaisanpham`
---
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `loaisanpham` (`ma_loai`, `tenloai`, `mota`) VALUES
 ('accessory', 'Phụ kiện', 'Dây đàn, bao đàn, chân đàn...'),
@@ -119,12 +82,6 @@ INSERT INTO `loaisanpham` (`ma_loai`, `tenloai`, `mota`) VALUES
 ('flute', 'Sáo', 'Sáo trúc, sáo mèo và các loại sáo khác'),
 ('guitar', 'Guitar', 'Các loại đàn guitar'),
 ('piano', 'Piano', 'Đàn piano điện và cơ');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `nguoidung`
---
 
 DROP TABLE IF EXISTS `nguoidung`;
 CREATE TABLE IF NOT EXISTS `nguoidung` (
@@ -140,11 +97,7 @@ CREATE TABLE IF NOT EXISTS `nguoidung` (
   `trangthai` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`ma_nd`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `nguoidung`
---
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `nguoidung` (`ma_nd`, `tennd`, `matkhau`, `sdt`, `diachi`, `phuongxa`, `tinhthanh`, `email`, `hinh`, `trangthai`) VALUES
 (1, 'Lê Minh Hoàng', '123456', '0988252751', '56 Cách Mạng Tháng 8', 'Phường Xuân Hòa', 'Thành phố Hồ Chí Minh', 'customer1@zyuuki.vn', NULL, 1),
@@ -152,12 +105,6 @@ INSERT INTO `nguoidung` (`ma_nd`, `tennd`, `matkhau`, `sdt`, `diachi`, `phuongxa
 (3, 'Trần Đức Hiếu', '123456', '0982422774', '22 Pasteur', 'Phường Bến Thành', 'Thành phố Hồ Chí Minh', 'customer3@zyuuki.vn', NULL, 1),
 (4, 'Ngô Hoàng Khang', '123456', '0932635865', '233 Lê Văn Sỹ', 'Phường Phú Nhuận', 'Thành phố Hồ Chí Minh', 'customer4@zyuuki.vn', NULL, 1),
 (5, 'Nguyễn Văn An', '123456', '0927321176', '25 Đ. Điện Biên Phủ', 'Phường Thạnh Mỹ Tây', 'Thành phố Hồ Chí Minh', 'customer5@zyuuki.vn', NULL, 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `nhasanxuat`
---
 
 DROP TABLE IF EXISTS `nhasanxuat`;
 CREATE TABLE IF NOT EXISTS `nhasanxuat` (
@@ -167,11 +114,7 @@ CREATE TABLE IF NOT EXISTS `nhasanxuat` (
   `sdt` varchar(30) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`ma_nsx`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `nhasanxuat`
---
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `nhasanxuat` (`ma_nsx`, `tennsx`, `diachi`, `sdt`, `email`) VALUES
 ('casio', 'Casio', '6-2 Hon-machi, Shibuya-ku, Tokyo, Nhật Bản', '+81 3-5566-7788', 'support@casio.jp'),
@@ -179,12 +122,6 @@ INSERT INTO `nhasanxuat` (`ma_nsx`, `tennsx`, `diachi`, `sdt`, `email`) VALUES
 ('meilan', 'MeiLan', 'Longhua District, Shenzhen, Trung Quốc', '+86 755-8899-1122', 'info@meilan.cn'),
 ('vicfirth', 'Vic Firth', '147 Norwood Street, Boston, Hoa Kỳ', '+1 617-555-9044', 'contact@vicfirth.com'),
 ('yamaha', 'Yamaha', '10-1 Nakazawa-cho, Hamamatsu, Nhật Bản', '+81 53-123-4567', 'contact@yamaha.jp');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `sanpham`
---
 
 DROP TABLE IF EXISTS `sanpham`;
 CREATE TABLE IF NOT EXISTS `sanpham` (
@@ -199,11 +136,7 @@ CREATE TABLE IF NOT EXISTS `sanpham` (
   PRIMARY KEY (`ma_sp`),
   KEY `ma_nsx` (`ma_nsx`),
   KEY `ma_loai` (`ma_loai`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `sanpham`
---
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `sanpham` (`ma_sp`, `tensp`, `ma_nsx`, `ma_loai`, `giasp`, `soluongton`, `mota`, `tenhinh`) VALUES
 ('SP01', 'Guitar Classic C40', 'yamaha', 'guitar', 2500000.00, 20, 'Guitar gỗ phù hợp cho người mới học', 'SP1_12112025.jpg'),
@@ -237,31 +170,16 @@ INSERT INTO `sanpham` (`ma_sp`, `tensp`, `ma_nsx`, `ma_loai`, `giasp`, `soluongt
 ('SP29', 'Pad Luyện Tập Trống', 'vicfirth', 'accessory', 600000.00, 65, 'Pad tập trống cao su', 'default.png'),
 ('SP30', 'Trống Đồng Latin', 'meilan', 'drum', 4800000.00, 16, 'Trống Conga/Bongo Latin', 'default.png');
 
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `chitietdondathang`
---
 ALTER TABLE `chitietdondathang`
   ADD CONSTRAINT `chitietdondathang_ibfk_1` FOREIGN KEY (`ma_ddh`) REFERENCES `dondathang` (`ma_ddh`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `chitietdondathang_ibfk_2` FOREIGN KEY (`ma_sp`) REFERENCES `sanpham` (`ma_sp`) ON DELETE CASCADE ON UPDATE CASCADE;
 
---
--- Constraints for table `dondathang`
---
 ALTER TABLE `dondathang`
   ADD CONSTRAINT `dondathang_ibfk_1` FOREIGN KEY (`ma_nd`) REFERENCES `nguoidung` (`ma_nd`) ON DELETE SET NULL ON UPDATE CASCADE;
 
---
--- Constraints for table `sanpham`
---
 ALTER TABLE `sanpham`
   ADD CONSTRAINT `sanpham_ibfk_1` FOREIGN KEY (`ma_nsx`) REFERENCES `nhasanxuat` (`ma_nsx`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `sanpham_ibfk_2` FOREIGN KEY (`ma_loai`) REFERENCES `loaisanpham` (`ma_loai`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+

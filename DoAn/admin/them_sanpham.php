@@ -13,12 +13,16 @@
         $mota = $_POST['mota'];
 
         // Xử lý upload ảnh
+        // Xử lý upload ảnh
         $hinh = "default.png";
         if (!empty($_FILES['hinh']['name'])) {
             $hinh = basename($_FILES['hinh']['name']);
-            move_uploaded_file($_FILES['hinh']['tmp_name'], "images/" . $hinh);
+            $path_root = "../images/" . $hinh;
+            $path_admin = "images/" . $hinh;
+            if (move_uploaded_file($_FILES['hinh']['tmp_name'], $path_root)) {
+                copy($path_root, $path_admin);
+            }
         }
-
         $sql = "INSERT INTO sanpham (ma_sp, tensp, ma_nsx, ma_loai, giasp, soluongton, mota, tenhinh) 
             VALUES ('$ma', '$ten', '$nsx', '$loai', '$gia', '$ton', '$mota', '$hinh')";
 
