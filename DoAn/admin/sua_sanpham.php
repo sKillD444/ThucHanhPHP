@@ -1,9 +1,12 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <?php
-include("config.php");
+include("../config.php");
 $id = $_GET['id'];
-$row = $conn->query("SELECT * FROM sanpham WHERE ma_sp = '$id'")->fetch_assoc();
+
+$stmt = $conn->prepare("SELECT * FROM sanpham WHERE ma_sp = :id");
+$stmt->execute([':id' => $id]);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $ten = $_POST['tensp'];
@@ -15,17 +18,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $hinh = $row['tenhinh'];
     if (!empty($_FILES['hinh']['name'])) {
-        $hinh = basename($_FILES['hinh']['name']);
-        move_uploaded_file($_FILES['hinh']['tmp_name'], "images/" . $hinh);
+        $hinh = time() . "_" . basename($_FILES['hinh']['name']);
+        move_uploaded_file($_FILES['hinh']['tmp_name'], "../images/" . $hinh);
     }
 
-    $sql = "UPDATE sanpham SET tensp='$ten', ma_nsx='$nsx', ma_loai='$loai', 
-            giasp='$gia', soluongton='$ton', mota='$mota', tenhinh='$hinh' 
-            WHERE ma_sp='$id'";
+    try {
+        $sql = "UPDATE sanpham SET tensp=:ten, ma_nsx=:nsx, ma_loai=:loai, 
+                giasp=:gia, soluongton=:ton, mota=:mota, tenhinh=:hinh 
+                WHERE ma_sp=:id";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            ':ten' => $ten,
+            ':nsx' => $nsx,
+            ':loai' => $loai,
+            ':gia' => $gia,
+            ':ton' => $ton,
+            ':mota' => $mota,
+            ':hinh' => $hinh,
+            ':id' => $id
+        ]);
 
-    if ($conn->query($sql) === TRUE) {
         header("Location: qlsanpham.php");
         exit();
+    } catch (PDOException $e) {
+        $error = "Lỗi: " . $e->getMessage();
     }
 }
 ?>
@@ -46,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <select name="ma_loai" class="form-select">
                             <?php
                             $l = $conn->query("SELECT * FROM loaisanpham");
-                            while ($r = $l->fetch_assoc()) {
+                            while ($r = $l->fetch(PDO::FETCH_ASSOC)) {
                                 $sel = ($r['ma_loai'] == $row['ma_loai']) ? 'selected' : '';
                                 echo "<option value='{$r['ma_loai']}' $sel>{$r['tenloai']}</option>";
                             }
@@ -57,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <select name="ma_nsx" class="form-select">
                             <?php
                             $n = $conn->query("SELECT * FROM nhasanxuat");
-                            while ($r = $n->fetch_assoc()) {
+                            while ($r = $n->fetch(PDO::FETCH_ASSOC)) {
                                 $sel = ($r['ma_nsx'] == $row['ma_nsx']) ? 'selected' : '';
                                 echo "<option value='{$r['ma_nsx']}' $sel>{$r['tennsx']}</option>";
                             }
@@ -70,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="col"><label>Số lượng</label><input type="number" name="soluongton" class="form-control" value="<?= $row['soluongton'] ?>"></div>
                 </div>
                 <div class="mb-3"><label>Hình ảnh</label><input type="file" name="hinh" class="form-control">
-                    <br><img src="images/<?= $row['tenhinh'] ?>" width="100" class="mt-2 border">
+                    <br><img src="../images/<?= $row['tenhinh'] ?>" width="100" class="mt-2 border">
                 </div>
                 <div class="mb-3"><label>Mô tả</label><textarea name="mota" class="form-control" rows="3"><?= $row['mota'] ?></textarea></div>
                 <button class="btn btn-outline-primary">Cập nhật</button> <a href="qlsanpham.php" class="btn btn-outline-secondary">Hủy</a>

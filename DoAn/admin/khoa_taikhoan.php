@@ -1,12 +1,18 @@
 <?php
-include("config.php");
+include("../config.php");
 
 if (isset($_GET['id']) && isset($_GET['tt'])) {
     $id = $_GET['id'];
-    $trangthai_moi = $_GET['tt']; // 0 là khóa, 1 là mở
+    $trangthai_moi = $_GET['tt'];
 
-    $sql = "UPDATE nguoidung SET trangthai = '$trangthai_moi' WHERE ma_nd = '$id'";
-    $conn->query($sql);
+    // [PDO] Prepare Statement cho an toàn
+    $sql = "UPDATE nguoidung SET trangthai = :tt WHERE ma_nd = :id";
+    $stmt = $conn->prepare($sql);
+
+    // Gán tham số và thực thi
+    $stmt->bindParam(':tt', $trangthai_moi);
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
 }
 
 // Quay lại trang danh sách

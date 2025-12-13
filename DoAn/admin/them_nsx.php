@@ -1,8 +1,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-
 <?php
-include("config.php");
+include("../config.php");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $ma = $_POST['ma_nsx'];
@@ -11,12 +10,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $sdt = $_POST['sdt'];
     $email = $_POST['email'];
 
-    $sql = "INSERT INTO nhasanxuat (ma_nsx, tennsx, diachi, sdt, email) VALUES ('$ma', '$ten', '$dc', '$sdt', '$email')";
-    if ($conn->query($sql) === TRUE) {
+    try {
+        $sql = "INSERT INTO nhasanxuat (ma_nsx, tennsx, diachi, sdt, email) VALUES (:ma, :ten, :dc, :sdt, :email)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            ':ma' => $ma,
+            ':ten' => $ten,
+            ':dc' => $dc,
+            ':sdt' => $sdt,
+            ':email' => $email
+        ]);
+
         header("Location: qlnsx.php");
         exit();
-    } else {
-        $error = "Lỗi: " . $conn->error;
+    } catch (PDOException $e) {
+        $error = "Lỗi: " . $e->getMessage();
     }
 }
 ?>

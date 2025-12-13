@@ -1,16 +1,13 @@
 <title>Đơn hàng</title>
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
 
 <body class="bg-light">
 
     <div class="d-flex">
         <?php
-        include("config.php");
+        include("../config.php");
         include("sidebar.php");
         ?>
-        <!-- CONTENT -->
         <div class="flex-grow-1 p-4" style="height: 100vh; overflow-y: auto;">
             <h2 class="fw-bold text-dark mb-4">Quản Lý Đơn Hàng</h2>
 
@@ -31,10 +28,10 @@
                         <tbody>
                             <?php
                             $sql = "SELECT * FROM dondathang ORDER BY ngaydat DESC";
-                            $result = $conn->query($sql);
+                            $stmt = $conn->query($sql);
 
-                            if ($result->num_rows > 0) {
-                                while ($row = $result->fetch_assoc()) {
+                            if ($stmt->rowCount() > 0) {
+                                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                                     $tongtien = number_format($row['tongtien'], 0, ',', '.') . ' đ';
 
                                     $badgeColor = 'bg-secondary';
@@ -62,5 +59,4 @@
             </div>
         </div>
     </div>
-
 </body>
